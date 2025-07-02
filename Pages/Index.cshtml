@@ -1,0 +1,300 @@
+﻿@page
+@model WebsiteChecker.Pages.IndexModel
+@{
+    ViewData["Title"] = "Website Status Checker";
+}
+
+<style>
+
+    .container {
+    display: block;
+    margin: 0 auto;        /* centers the div horizontally */
+    width: fit-content;    /* or set a fixed width like 600px */
+    }
+
+
+    .detailed-checks-list {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 20px;
+        padding: 0;
+        list-style: none;
+    }
+
+    .detailed-checks-list li {
+        display: flex;
+        align-items: center;
+    }
+
+    .check-icon {
+        font-size: 1.2em;
+    }
+
+    .check-text {
+        margin-left: 5px;
+    }
+
+
+
+
+    .about-section {
+    padding: 20px;
+    margin: 30px auto;
+    max-width: 1000px;
+    border-radius: 12px;
+    background-color: #1e1e38;
+    box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    }
+
+    .about-section h1 {
+    text-align: center;
+    margin-top: 40px;
+    margin-bottom: 20px;
+    font-size: 2em;
+    color:  #82aaff;
+    }
+
+    .about-section p, 
+    .about-section ul {
+    margin-left: 20px;
+    margin-right: 20px;
+    line-height: 1.6;
+    color: white;
+    }
+
+    
+</style>
+
+@functions {
+    // Safely check if key exists and value is true
+    bool CheckStatus(string key)
+    {
+        return Model.CheckResults != null && Model.CheckResults.ContainsKey(key) && Model.CheckResults[key];
+    }
+}
+
+<div class="container">
+    <h1>WebsiteChecker</h1>
+
+    <p class="lead text-center">
+        WebsiteChecker lets you instantly test if a website is online or experiencing issues.
+        It’s perfect for users, developers, and site admins. Just enter a URL, check the status,
+        and get real-time results. Quick, simple and reliable.<br><br>
+    </p>
+
+    <form method="post">
+        <div>
+            <label asp-for="UrlToCheck">Enter Website URL</label>
+            <input type="text" asp-for="UrlToCheck" placeholder="e.g., google.com" />
+            <span asp-validation-for="UrlToCheck" class="text-danger"></span>
+        </div>
+        <button type="submit">Check Status</button>
+    </form>
+
+@if (Model.CheckPerformed)
+{
+    <div class="="result-section>
+        <h2>Result for @Model.CheckedUrl</h2>
+        <div class="result-message">
+            @if (Model.IsUp)
+            {
+                <p class="status-up"><strong>@Model.CheckedUrl is UP!</strong> 👍</p>
+
+                @* Show redirected URL info if applicable *@
+                @if (!string.IsNullOrEmpty(Model.RedirectedUrl))
+                {
+                    <p>
+                        🔁 Redirected to:
+                        <a href="@Model.RedirectedUrl" target="_blank">@Model.RedirectedUrl</a>
+                    </p>
+
+                    @if (Model.RedirectsToDifferentDomain)
+                    {
+                        <p style="color: orange;">
+                            ⚠️ Warning: This site redirects to a different domain.
+                        </p>
+                    }
+                }
+            }
+            else
+            {
+                @* Website is down, check for Timeout or other Error *@
+                @if (!string.IsNullOrEmpty(Model.ErrorMessage) && Model.ErrorMessage.ToLower().Contains("timeout"))
+                {
+                    <p class="status-timeout"><strong>@Model.CheckedUrl is DOWN - Timeout</strong> 🟠</p>
+                    <p class="error-details">The server took too long to respond.</p>
+                }
+                else if (!string.IsNullOrEmpty(Model.ErrorMessage))
+                {
+                    <p class="status-error"><strong>@Model.CheckedUrl is DOWN - Error</strong> ⚠️</p>
+                    <p class="error-details">@Model.ErrorMessage</p>
+                }
+                else
+                {
+                    <p class="status-down"><strong>@Model.CheckedUrl is DOWN</strong> 👎</p>
+                }
+            }
+        </div>
+
+
+
+            <!-- BEGIN: Detailed Check List -->
+            <div class="tips" style="margin-top: 40px; padding: 25px; background-color: #1e1e38; color: white; border-radius: 8px;">
+                <h3>📋 Detailed Checks</h3>
+
+                <ul class="detailed-checks-list">
+                    <li>
+                        <span class="check-icon">@Html.Raw(CheckStatus("DNS") ? "✅" : "❌")</span>
+                        <span class="check-text">&nbsp;DNS</span>
+                    </li>
+                    <li>
+                        <span class="check-icon">@Html.Raw(CheckStatus("TCP") ? "✅" : "❌")</span>
+                        <span class="check-text">&nbsp;TCP</span>
+                    </li>
+                    <li>
+                        <span class="check-icon">@Html.Raw(CheckStatus("HTTP") ? "✅" : "❌")</span>
+                        <span class="check-text">&nbsp;HTTP</span>
+                    </li>
+                    <li>
+                        <span class="check-icon">@Html.Raw(CheckStatus("SSL") ? "✅" : "❌")</span>
+                        <span class="check-text">&nbsp;SSL</span>
+                    </li>
+                    <li>
+                        <span class="check-icon">@Html.Raw(CheckStatus("Redirects") ? "✅" : "❌")</span>
+                        <span class="check-text">&nbsp;Redirects</span>
+                    </li>
+                    <li>
+                        <span class="check-icon">@Html.Raw(CheckStatus("LoadTime") ? "✅" : "❌")</span>
+                        <span class="check-text">&nbsp;Load Time</span>
+                    </li>
+                    <li>
+                        <span class="check-icon">@Html.Raw(CheckStatus("StatusCode") ? "✅" : "❌")</span>
+                        <span class="check-text">&nbsp;Status Code</span>
+                    </li>
+                    <li>
+                        <span class="check-icon">@Html.Raw(CheckStatus("Content") ? "✅" : "❌")</span>
+                        <span class="check-text">&nbsp;Content</span>
+                    </li>
+                    <li>
+                        <span class="check-icon">@Html.Raw(CheckStatus("Firewall") ? "✅" : "❌")</span>
+                        <span class="check-text">&nbsp;Firewall</span>
+                    </li>
+                    <li>
+                        <span class="check-icon">@Html.Raw(CheckStatus("Ping") ? "✅" : "❌")</span>
+                        <span class="check-text">&nbsp;Ping</span>
+                    </li>
+                </ul>
+            </div>
+            <!-- END: Detailed Check List -->
+        </div>
+    }
+
+    
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+
+<br>
+
+<div class="about-section">
+    <h1>WebsiteChecker Results</h1>
+    <p>
+        After running the check, you'll get a detailed breakdown of each test below. These results help you understand exactly which parts of the website are working and where issues might be hiding. We present each result in a simple ✅ or ❌ format so you can quickly spot what passed and what didn’t, no need to dig through logs or error messages. This helps you troubleshoot problems fast or confirm everything is working as expected.
+    </p>
+    <div style="display: flex; justify-content: center;">
+        <ul style="list-style-type: none; padding-left: 0;">
+            <li><span style="color: green;"><strong>🟢 UP:</strong></span> The website is responding and accessible</li>
+            <li><span style="color: red;"><strong>🔴 DOWN:</strong></span> The website is not reachable from our system</li>
+            <li><span style="color: orange;"><strong>🟠 TIMEOUT:</strong></span> The server is too slow or unresponsive</li>
+            <li><span style="color: yellow;"><strong>🟡 REDIRECTED:</strong></span> The website responded but redirected to another URL</li>
+
+            <li><strong>⚠️ ERROR:</strong> The website returned an error status.</li>
+        </ul>
+    </div>
+
+    <h1>What Gets Verified</h1>
+    <p>WebsiteChecker helps you find out what’s going on with your website by running a series of important checks. We show detailed results so you can quickly understand any issues and take action. Whether it’s connection problems, security concerns, or content errors, our results break down each part clearly. This way, you get a full picture of your site’s health without the guesswork.</p>
+        <div style="display: flex; justify-content: center;">
+            <ul style="list-style-type: none; padding-left: 0;
+                    <li style="margin-bottom: 10px;">🔍 DNS Resolution – Check if the domain name resolves to an IP address</li>
+                    <li style="margin-bottom: 10px;">🔗 TCP Connection – Verify if a connection can be established to the server</li>
+                    <li style="margin-bottom: 10px;">📶 HTTP Response – Confirm the server responds to HTTP/HTTPS requests</li>
+                    <li style="margin-bottom: 10px;">🛡️ SSL Certificate Validity – Ensure the SSL/TLS certificate is valid (HTTPS)</li>
+                    <li style="margin-bottom: 10px;">⏲️ Response Time – Measure if the server responds quickly enough</li>
+                    <li style="margin-bottom: 10px;">📋 HTTP Status Code – Validate the server returns a successful 200/3xx code</li>
+                    <li style="margin-bottom: 10px;">📄 Content Check – Verify the page content loads as expected</li>
+                    <li style="margin-bottom: 10px;">↪️ Redirection Check – Confirm proper redirection (e.g., HTTP to HTTPS)</li>
+                    <li style="margin-bottom: 10px;">📡 Port Availability – Check if ports (80/443) are open and responsive</li>
+                    <li style="margin-bottom: 10px;">🚫 Firewall or Blockage – Detect if IPs or regions are blocked by firewall</li>
+            </ul>
+        </div>
+
+
+    <h1>How It Works</h1>
+    <p>WebsiteChecker sends a quick request to the website you want to check from our secure servers. We test key factors like server response, loading speed, and security status to get an accurate picture of the site’s health. Within seconds, you get a clear report showing whether the site is up or down, along with detailed checks that help you understand what might be causing any issues. It’s fast, reliable, and designed to give you peace of mind, no technical skills needed.
+     you enter a URL, here’s what happens:</p>
+    <ul style="list-style-type: none; padding-left: 0;">
+        <li>✅ Our system acts like a real visitor trying to access the website from external, neutral servers.</li>
+        <li>✅ It performs multiple technical checks, including DNS resolution, server connection, HTTP/HTTPS response, SSL certificate status</li>
+        <li>✅ We analyze critical details like HTTP status codes, response delays, timeouts, redirects, and content availability.</li>
+        <li>✅ You receive a clear, easy-to-read result that tells you whether the site is up or down, and if something’s wrong</li>
+        <li>✅ You get a clear, human-friendly message in seconds, without needing any technical knowledge from your side.</li>
+    </ul>
+
+    <h1>Why It Matters</h1>
+    <p>In a world where every second online matters, WebsiteChecker gives you a smarter, faster way to verify if a website is up and running. No tech skills required — just enter the URL and get instant clarity. Whether you're a curious user or a busy professional, our tool saves you time, stress, and guesswork.</p>
+    <div style="display: flex; justify-content: center;">
+        <ul style="list-style-type: none; padding-left: 0;">
+            <li><strong>⚡ Speed & Simplicity</strong> – Clean interface. Instant results. No clutter, just fast answers</li>
+            <li><strong>🛡️ Reliability</strong> – Checks run from neutral servers for accurate, unbiased results</li>
+            <li><strong>📊 Detailed Insights</strong> – Get clarity on what’s working and what’s not</li>
+            <li><strong>🌍 Global Reach</strong> – Tests run from real-word locations to reflect real availability </li>
+            <li><strong>🔧 Built for Everyone </strong> –  Whether you're a casual user, site owner, or IT expert</li>
+            <li><strong>🔄 Updated in Real Time</strong> – Get current and accurate info every time you check</li>
+            <li><strong>✅ No Setup Needed</strong> – Just enter a URL — no installs, no extensions, no hassle </li>
+            <li><strong>💸 Always Free</strong> – No sign-ups, no payments, no hidden fees </li>      
+        </ul>
+    </div>
+
+    <h1>Users Support</h1>
+    <p>
+    WebsiteChecker gives you lightning-fast insights into whether a website is accessible or experiencing problems. By checking directly from our servers, we remove the guesswork and help you understand the real status — no delays, no tech jargon. In today’s digital world, every second a site is down can mean lost opportunities and frustration. Whether you’re a casual user, a tech pro, or a business owner, WebsiteChecker empowers you to respond quickly, keep users informed, and ensure smooth online operations.
+    From casual users to professionals, WebsiteChecker is a go-to tool for checking site availability.
+
+    </p>
+    <div style="display: flex; justify-content: center;">
+        <ul style="list-style-type: none; padding-left: 0;">
+            <li><strong>Casual Users:</strong> Easily check if a site is offline or if it's just a connection issue</li>
+            <li><strong>Developers & IT Pros:</strong> Use it to quickly spot connection or server issues</li>
+            <li><strong>Small Business Owners:</strong> Check website availability without technical tools</li>
+            <li><strong>Gamers:</strong> Not sure if a game server is offline? Get clarity before restarting your router</li>
+        </ul>
+    </div>
+
+        <h1>💡 Tips for Users</h1>
+        <div style="display: flex; justify-content: center;">
+
+            <ul style="font-size: 1.1em; list-style-type: none;">
+                <li>Make sure the URL is correct (e.g., include <code>https://</code>)</li>
+                <li>Try different formats like <code>example.com</code> vs <code>www.example.com</code></li>
+                <li>If you're unsure, test the site on different networks or devices</li>
+            </ul>
+        </div>
+
+        <hr class="my-4">
+
+        <div class="text-center mt-4" style="text-align: center;">
+            <strong>
+                Ready to check a site?
+                <a asp-page="/Index" style="color: #82aaff; text-decoration: underline; margin-left: 5px;">
+                    Click Here
+                </a>
+            </strong>
+        </div>
+
+    </div>
+    
+</div>

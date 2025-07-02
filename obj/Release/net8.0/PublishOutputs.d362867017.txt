@@ -1,0 +1,6 @@
+C:\Users\user\Desktop\WebsiteChecker\publish\WebsiteChecker.exe
+C:\Users\user\Desktop\WebsiteChecker\publish\appsettings.json
+C:\Users\user\Desktop\WebsiteChecker\publish\WebsiteChecker.dll
+C:\Users\user\Desktop\WebsiteChecker\publish\WebsiteChecker.deps.json
+C:\Users\user\Desktop\WebsiteChecker\publish\WebsiteChecker.runtimeconfig.json
+C:\Users\user\Desktop\WebsiteChecker\publish\WebsiteChecker.pdb

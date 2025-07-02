@@ -1,0 +1,33 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewData["Title"] - WebsiteChecker</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="icon" type="image/png" href="~/image.png" />
+</head>
+<body>
+
+<style>
+    .brand {
+    text-decoration: none;
+    color: inherit;
+    font-weight: bold;
+    }
+</style>
+
+    <nav class="navbar">
+        <div class="nav-left">
+            <a href="@Url.Action("Index")" class="brand">🌐 WebsiteChecker</a>
+        </div>
+    </nav>
+    <div class="main-content">
+        @RenderBody()
+    </div>
+    <footer class="footer">
+        &copy; WebsiteChecker 2025. All Rights Reserved
+    </footer>
+
+    @RenderSection("Scripts", required: false)
+</body>
+</html>
